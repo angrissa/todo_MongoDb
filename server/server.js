@@ -17,17 +17,17 @@ app.use(bodyParser.json());
 // routes
 
 app.post('/todos', (req,res) => {
-	console.log(req.body);
+	//console.log(req.body);
 	var todo = new Todo({
 		text : req.body.text
 	});
 	
 	todo.save().then((doc) => {
-		  console.log('Saved: ', doc)
+		  //console.log('Saved: ', doc)
 		  res.send(doc);
 		
 	}, (e) => {
-		console.log('Failed:', e)
+		// console.log('Failed:', e)
 		res.status(400).send(e);
 	})
 });
@@ -36,6 +36,9 @@ app.listen(3000, () => {
 	console.log('Started on port 3000');
 })
 
+
+// For tests
+module.exports = {app};
 
 
 
