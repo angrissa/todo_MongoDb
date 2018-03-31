@@ -4,11 +4,20 @@ const request = require('supertest');
 const {Todo} = require('./../models/todo');
 const {app} = require('./../server/server');
 
-// we need emppty db for testing
+const todos = [{
+	text: 'First test case'
+}, {
+	text : 'second test case'
+}];
+
+// we need empty db for testing
 beforeEach((done) => {
+//Todo.remove({}).then(() => {
+//		done();
+	// need predefined set of data
 	Todo.remove({}).then(() => {
-		done();
-	})
+	  return Todo.insertMany(todos)
+	}).then(() => done());
 });
 
 describe('POST /todos', () => {
@@ -27,7 +36,8 @@ describe('POST /todos', () => {
 	    	  return done(err);
 	      }	
 	      
-	      Todo.find().then((todos) => {
+//	      Todo.find().then((todos) => {
+	      Todo.find({text}).then((todos) => {  // now we need to look for the first record only	      
 	    	  expect(todos.length).toBe(1);
 	    	  expect(todos[0].text).toBe(text);
 	    	  done();
@@ -46,9 +56,20 @@ describe('POST /todos', () => {
 			};
 			
 		   Todo.find().then((todos) => {
-			 expect(todos.length).toBe(0);
+			 expect(todos.length).toBe(2); // now it is not 0, it is 2 recs from array
 			 done();
 		   }).catch((e) => done(e));
 		});
 	});
+});
+
+describe('GET /todos', () => {
+	it('should get all (2) todos', (done) => {
+		request(app)
+		  .get('/todos')
+		  .expect(200)
+		  .expect((res) => {
+			  expect(res.body.todos.length).toBe(2);
+		  }).end(done);
+	})
 });
