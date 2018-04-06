@@ -8,7 +8,8 @@ mongoose.Promise = global.Promise; //use build-in js promises
 // created sandbox mongo in it
 // set env variable in heroku MONGOLAB_URI
 // see https://stackoverflow.com/questions/36321385/deploy-nodejs-mongodb-on-heroku-but-need-verify-credit-card-when-install-add-o_
-var URI = process.env.MONGOLAB_URI || 'mongodb://localhost:27017/TodoApp';
-console.log(URI); 
+//var URI = process.env.MONGOLAB_URI;
+var URI = process.env.MONGODB_URI;
+//console.log(URI); 
 mongoose.connect(URI);
 module.exports = {mongoose};
