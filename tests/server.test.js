@@ -10,7 +10,9 @@ const todos = [{
 	text: 'First test case'
 }, {
 	_id : new ObjectID(),
-	text : 'second test case'
+	text : 'second test case',
+	completed: true,
+	completedAt: 12345
 }];
 
 // we need empty db for testing
@@ -139,3 +141,41 @@ describe('DELETE /todos/:id', () => {
 	});
 	
 });
+
+describe('PATCH /todos/:id', () => {
+	it('Should set Completed to TRUE', (done) => {
+		var hexId = todos[0]._id.toHexString();
+		var text = 'New patched text';
+		request(app)
+		.patch(`/todos/${hexId}`)
+		.send({
+			completed: true,
+			text
+		})
+		.expect(200)
+		.expect((res) => {
+			expect(res.body.todo.text).toBe(text);
+			expect(res.body.todo.completed).toBe(true);
+			expect(res.body.todo.completedAt).toBeA('number');
+		})
+		.end(done);
+	});
+	
+	it('Should set completed to FALSE and completedAt to null', (done) => {
+		var hexId = todos[1]._id.toHexString();
+		var text = 'anothe text';
+		request(app)
+		.patch(`/todos/${hexId}`)
+		.send({
+			completed : false,
+			text
+		})
+		.expect(200)
+		.expect((res) => {
+			expect(res.body.todo.completed).toBe(false);
+			expect(res.body.todo.completedAt).toNotExist();
+			expect(res.body.todo.text).toBe(text);
+		})
+		.end(done);
+	})
+}); 
