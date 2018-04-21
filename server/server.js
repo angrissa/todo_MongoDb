@@ -119,6 +119,33 @@ app.patch('/todos/:id', (req,res) => {
 	
 });
 
+//------------------USERS
+app.post('/users', (req,res) => {
+	//console.log(req.body);
+	var body = _.pick(req.body, ['email', 'password']);
+	//var user = new User({
+//		email : req.body.email,
+		//password: req.body.password
+	//});
+	
+	var user = new User(body);
+	
+	user.save().then(() => { // ((user) => {   we work with the local variable user so...
+		  // res.send(user);
+		return user.generateAuthToken(); // actually returns token
+		
+	}, (e) => {
+		// console.log('Failed:', e)
+		res.status(400).send(e);
+	}).then( (token) => {
+		// headers that starts with "x-" are the custom headers. we create our header for authorisation 
+		res.header('x-auth', token).send(user);
+	}
+	).catch((e) => {
+		res.status(400).send(e);
+	})
+});
+
 
 app.listen(port, () => {
 	console.log(`Started on port ${port}`);
