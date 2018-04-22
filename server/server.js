@@ -1,14 +1,15 @@
-var config = require('./config/config'); 
+var config = require('./config/config');
 
 const _ = require('lodash');
 var express = require('express');
 var bodyParser = require('body-parser');
-const {ObjectID} = require('mongodb');
+const { ObjectID } = require('mongodb');
+const { authinticate } = require('./midlleware/authinticate');
 
 
-var {Todo} = require ('./../models/todo');
-var {User} = require('./../models/user');
-var {mongoose} = require('./../db/mongoose');
+var { Todo } = require('./../models/todo');
+var { User } = require('./../models/user');
+var { mongoose } = require('./../db/mongoose');
 
 //var {Todo} = require ('./models/Todo');
 //var {User} = require('./models/User');
@@ -22,65 +23,65 @@ app.use(bodyParser.json());
 
 // routes
 
-app.post('/todos', (req,res) => {
-	//console.log(req.body);
-	var todo = new Todo({
-		text : req.body.text
-	});
-	
-	todo.save().then((doc) => {
-		  //console.log('Saved: ', doc)
-		  res.send(doc);
-		
-	}, (e) => {
-		// console.log('Failed:', e)
-		res.status(400).send(e);
-	})
+app.post('/todos', (req, res) => {
+    //console.log(req.body);
+    var todo = new Todo({
+        text: req.body.text
+    });
+
+    todo.save().then((doc) => {
+        //console.log('Saved: ', doc)
+        res.send(doc);
+
+    }, (e) => {
+        // console.log('Failed:', e)
+        res.status(400).send(e);
+    })
 });
 
 app.get('/todos', (req, res) => {
-	Todo.find().then((todos) => {
-		res.send({todos});
-	}, (e) => {
-		res.status(400).send(e);
-	});
+    Todo.find().then((todos) => {
+        res.send({ todos });
+    }, (e) => {
+        res.status(400).send(e);
+    });
 });
 
 app.get('/todos/:id', (req, res) => {
-	//res.send(req.params);
-	var id = req.params.id;
-	if (!ObjectID.isValid(id)) {
-		//console.log('Invalid ID');
-		return res.status(400).send('Invalid ID');
-	};
-	Todo.findById(id).then((todo) => {
-		if (todo) {
-		  return res.send({todo});
-		 };
-		 return res.status(404).send();
-	}, (e) => {
-		res.status(404).send(e);
-	}).catch((e) => {
-		res.status(404).send();
-	});
+    //res.send(req.params);
+    var id = req.params.id;
+    if (!ObjectID.isValid(id)) {
+        //console.log('Invalid ID');
+        return res.status(400).send('Invalid ID');
+    };
+    Todo.findById(id).then((todo) => {
+        if (todo) {
+            return res.send({ todo });
+        };
+        return res.status(404).send();
+    }, (e) => {
+        res.status(404).send(e);
+    }).catch((e) => {
+        res.status(404).send();
+    });
 });
 
 app.delete('/todos/:id', (req, res) => {
-	var id = req.params.id;
-	if (!ObjectID.isValid(id)) {
-		return res.status(404).send();
-	};
-	
-	Todo.findByIdAndRemove(id).then((todo) => {
-		if (!todo) {
-			return res.status(404).send();
-		};
-		res.status(200).send({todo});
-	}, (e) => {
-		res.status(400).send();
-	}).catch((e) => {
-		res.status(400).send();
-	});
+    var id = req.params.id;
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send();
+    };
+
+    Todo.findByIdAndRemove(id).then((todo) => {
+        if (!todo) {
+            return res.status(404).send();
+        };
+        res.status(200).send({ todo });
+    }, (e) => {
+        res.status(400).send();
+    }).catch((e) => {
+        res.status(400).send();
+    });
 });
 
 /*
@@ -89,70 +90,93 @@ app.listen(3000, () => {
 })
 */
 
-app.patch('/todos/:id', (req,res) => {
-	var id = req.params.id;
-	var body = _.pick(req.body, ['text', 'completed']);
-	
-	if (!ObjectID.isValid(id)) {
-		return res.status(404).send();
-	};
-	
-	if (_.isBoolean(body.completed) && body.completed) {
-		body.completedAt = new Date().getTime();
-	} else {
-		body.completed = false;
-		body.completedAt = null;
-	};
-	
-	
-	Todo.findByIdAndUpdate(id, {
-		$set: body
-	}, {new: true}).then((todo) => {
-		if (!todo) {
-			res.status(400).send();
-		}
-		res.send({todo});
-	}).catch((e) => {
-		res.status(400).send();
-	})
-	
-	
+/*
+app.get('/users/me', (req, res) => {
+    var token = req.header('x-auth');
+
+    User.findByToken(token)
+        .then((user) => {
+            if (!user) {
+                //res.status(401).send();
+                return Promise.reject();
+            };
+            res.send(user);
+
+        }).catch((e) => {
+            res.status(401).send(); // 401 - auth required
+        });
+});
+*/
+
+
+app.get('/users/me', authinticate, (req, res) => {
+    // authinticate modified req, so...
+    res.send(req.user);
+});
+
+app.patch('/todos/:id', (req, res) => {
+    var id = req.params.id;
+    var body = _.pick(req.body, ['text', 'completed']);
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send();
+    };
+
+    if (_.isBoolean(body.completed) && body.completed) {
+        body.completedAt = new Date().getTime();
+    } else {
+        body.completed = false;
+        body.completedAt = null;
+    };
+
+
+    Todo.findByIdAndUpdate(id, {
+        $set: body
+    }, { new: true }).then((todo) => {
+        if (!todo) {
+            res.status(400).send();
+        }
+        res.send({ todo });
+    }).catch((e) => {
+        res.status(400).send();
+    })
+
+
 });
 
 //------------------USERS
-app.post('/users', (req,res) => {
-	//console.log(req.body);
-	var body = _.pick(req.body, ['email', 'password']);
-	//var user = new User({
-//		email : req.body.email,
-		//password: req.body.password
-	//});
-	
-	var user = new User(body);
-	
-	user.save().then(() => { // ((user) => {   we work with the local variable user so...
-		  // res.send(user);
-		return user.generateAuthToken(); // actually returns token
-		
-	}, (e) => {
-		// console.log('Failed:', e)
-		res.status(400).send(e);
-	}).then( (token) => {
-		// headers that starts with "x-" are the custom headers. we create our header for authorisation 
-		res.header('x-auth', token).send(user);
-	}
-	).catch((e) => {
-		res.status(400).send(e);
-	})
+app.post('/users', (req, res) => {
+    //console.log(req.body);
+    var body = _.pick(req.body, ['email', 'password']);
+    //var user = new User({
+    //		email : req.body.email,
+    //password: req.body.password
+    //});
+
+    var user = new User(body);
+
+    user.save().then(() => { // ((user) => {   we work with the local variable user so...
+        // res.send(user);
+        return user.generateAuthToken(); // actually returns token
+
+    }, (e) => {
+        // console.log('Failed:', e)
+        res.status(400).send(e);
+    }).then((token) => {
+        // headers that starts with "x-" are the custom headers. we create our header for authorisation 
+        res.header('x-auth', token).send(user);
+    }).catch((e) => {
+        res.status(400).send(e);
+    })
 });
 
 
 app.listen(port, () => {
-	console.log(`Started on port ${port}`);
+    console.log(`Started on port ${port}`);
 })
 
 // For tests
-module.exports = {app};
+module.exports = { app };
 
 
 
