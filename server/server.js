@@ -145,6 +145,23 @@ app.patch('/todos/:id', (req, res) => {
 });
 
 //------------------USERS
+// Loging users/login {email, password}
+app.post('/users/login', (req, res) => {
+    var body = _.pick(req.body, ['email', 'password']);
+    //var user = User.findOne()
+    User.findByCredentials(body.email, body.password).then((user) => {
+        //
+        //res.status(200).send(user);
+        return user.generateAuthToken().then((token) => {
+            res.header('x-auth', token).send(user);
+        });
+    }).catch((e) => {
+        res.status(400).send(e);
+    });
+    //res.send(body);
+
+});
+
 app.post('/users', (req, res) => {
     //console.log(req.body);
     var body = _.pick(req.body, ['email', 'password']);
