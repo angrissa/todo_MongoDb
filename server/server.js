@@ -162,6 +162,16 @@ app.post('/users/login', (req, res) => {
 
 });
 
+// logout - all we need is to delete token for the currently logged in user
+app.delete('/users/me/token', authinticate, (req, res) => {
+    req.user.removeToken(req.token).then(() => {
+        res.status(200).send();
+    }, () => {
+        res.status(400).send();
+    })
+
+});
+
 app.post('/users', (req, res) => {
     //console.log(req.body);
     var body = _.pick(req.body, ['email', 'password']);

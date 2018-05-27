@@ -53,6 +53,20 @@ UserSchema.methods.generateAuthToken = function() {
 
 };
 
+// Instance method 
+UserSchema.methods.removeToken = function(token) {
+    var user = this;
+
+    return user.update({
+        $pull: {
+            tokens: {
+                token: token
+            }
+
+        }
+    });
+};
+
 // Override - so we will send only open parts of the object
 UserSchema.methods.toJSON = function() {
     var user = this;
